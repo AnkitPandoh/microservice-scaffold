@@ -37,16 +37,19 @@ public class ApiWrapper {
     public <Q, R> ResponseEntity<String> execute(TypeReference<Q> requestType, String requestBody,
                                                  BusinessLogic<Q, R> businessLogic) throws Exception {
         Q request;
-        R response = null;
         try {
             request = mapper.readValue(requestBody, requestType);
-            response = businessLogic.runLogic(request);
-            return new ResponseEntity<>(formatResponse(new ApiResponse<>(response)), HttpStatus.OK);
         } catch (IOException ioex) {
             log.error("Exception occured while reading input", ioex);
             return new ResponseEntity<>(formatResponse(new ApiResponse<>(ioex.getMessage() == null
                     ? "Please check your request" : ioex.getMessage())),
                     HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            R response = null;
+            response = businessLogic.runLogic(request);
+            return new ResponseEntity<>(formatResponse(new ApiResponse<>(response)), HttpStatus.OK);
         } catch (Exception ex) {
             log.error("Exception occured", ex);
             return new ResponseEntity<>(
