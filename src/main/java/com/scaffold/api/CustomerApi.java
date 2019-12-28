@@ -2,23 +2,25 @@ package com.scaffold.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.scaffold.model.Customer;
+import com.scaffold.model.Response;
 import com.scaffold.response.ApiWrapper;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("customer")
+@Log4j2
 public class CustomerApi {
 
-    private static final Logger logger = LogManager.getLogger(CustomerApi.class);
     private final ApiWrapper wrapper;
 
     private Map<String, Customer> customerStore = new ConcurrentHashMap<>();
@@ -27,32 +29,25 @@ public class CustomerApi {
         this.wrapper = new ApiWrapper();
     }
 
-    @GetMapping(value = "/{id}", produces = "application/json")
-    @ApiOperation(value="Find Customer By Id", notes="Provide an Id to look up a customer",
-        response=Customer.class)
-    public ResponseEntity<String> getCustomer(@ApiParam(value="Id value for the customer you need to retrieve", required=true)
-                                                  @PathVariable String id) throws Exception {
-        return wrapper.executeWithoutInputs(() -> {
-            logger.debug("Get Customer By Id");
-            return customerStore.get(id);
-        });
+    @GetMapping(value = "/v1.0/{id}", produces = "application/json")
+    @ApiOperation(value = "Find Customer By Id", notes = "Provide an Id to look up a customer",
+            response = Customer.class)
+    public ResponseEntity<Response<Customer>> getCustomer(@ApiParam(value = "Id value for the customer you need to retrieve", required = true)
+                                                          @PathVariable String id) throws Exception {
+        log.debug("Get Customer By Id");
+        return ResponseEntity.ok(new Response(customerStore.get(id), HttpStatus.OK.value()));
     }
 
-    @GetMapping(produces = "application/json")
-    public ResponseEntity<String> getAllCustomers() throws Exception {
-        return wrapper.executeWithoutInputs(() -> {
-            logger.debug("Get All Customers");
-            return new ArrayList(customerStore.values());
-        });
+    @GetMapping(value = "/v1.0", produces = "application/json")
+    public ResponseEntity<Response<List<Customer>>> getAllCustomers() throws Exception {
+        log.debug("Get All Customers");
+        return ResponseEntity.ok(new Response(new ArrayList(customerStore.values()), HttpStatus.OK.value()));
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<String> saveCustomer(@RequestBody String request) throws Exception {
-        return wrapper.execute(new TypeReference<Customer>() {
-        }, request, (customer) -> {
-            logger.debug("Save Customer");
-            customerStore.put(customer.getId(), customer);
-            return "saved";
-        });
+    @PostMapping(value = "/v1.0", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Response<String>> saveCustomer(@RequestBody Customer customer) throws Exception {
+        log.debug("Save Customer");
+        customerStore.put(customer.getId(), customer);
+        return ResponseEntity.ok(new Response("SAVED", HttpStatus.OK.value()));
     }
 }

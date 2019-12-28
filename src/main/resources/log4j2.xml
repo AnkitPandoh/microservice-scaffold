@@ -1,40 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="30">
+
     <Properties>
         <Property name="LOG_PATTERN">
-            %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} --- [%15.15t] %-40.40c{1.} : %m%n%ex
+            %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} -&#45;&#45; [%15.15t] %-40.40c{1.} : %m%n%ex
         </Property>
+        <property name="LOGS_DIR" value="logs" />
     </Properties>
+
     <Appenders>
         <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
-        <RollingFile name="FileAppender" fileName="logs/app.log"
-                     filePattern="logs/app-%d{yyyy-MM-dd}-%i.log">
-            <PatternLayout>
-                <Pattern>${LOG_PATTERN}</Pattern>
-            </PatternLayout>
+        <RollingFile name="FileAppender" fileName="${LOGS_DIR}/sccafold-service.log"
+                     filePattern="${LOGS_DIR}/sccafold-service-%d{yyyy-MM-dd}-%i.log">
+            <JsonLayout eventEol="true" complete="false" compact="true">
+                <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSS}" />
+                <KeyValuePair key="hostname" value="$${hostName}"/>
+                <KeyValuePair key="request-id" value="$${ctx:x-request-id}"/>
+            </JsonLayout>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB" />
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
     </Appenders>
-    <DynamicThresholdFilter key="X-Log-Level" onMatch="ACCEPT" onMismatch="NEUTRAL" defaultThreshold="ERROR">
+
+    <DynamicThresholdFilter key="x-log-level" onMatch="ACCEPT" onMismatch="NEUTRAL" defaultThreshold="ERROR">
         <KeyValuePair key="TRACE" value="TRACE"/>
         <KeyValuePair key="DEBUG" value="DEBUG"/>
         <KeyValuePair key="INFO" value="INFO"/>
         <KeyValuePair key="ERROR" value="ERROR"/>
         <KeyValuePair key="WARN" value="WARN"/>
     </DynamicThresholdFilter>
+
     <Loggers>
+        <!-- Scaffold logger which logs messages for com.scaffold package to console or file
+        where log level is debug or above-->
         <Logger name="com.scaffold" level="debug" additivity="false">
             <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="FileAppender"/>
         </Logger>
 
+        <!-- Root logger which can log messages for any package and to any destination
+        where log level is error or above-->
         <Root level="error">
             <AppenderRef ref="ConsoleAppender" />
             <AppenderRef ref="FileAppender"/>
         </Root>
     </Loggers>
+
 </Configuration>

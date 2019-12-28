@@ -1,5 +1,23 @@
 server:
   port: 8080
   servlet:
-    context-path: /api/v1
+    context-path: /service
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      base-path: /
+
+# Swagger
+info:
+  app:
+    name: Scaffold Service
+    description: Scaffold Service
+    version: 1.0
+
 
