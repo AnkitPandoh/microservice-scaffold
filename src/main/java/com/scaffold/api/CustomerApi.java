@@ -32,7 +32,7 @@ public class CustomerApi {
     @GetMapping(value = "/v1.0/{id}", produces = "application/json")
     @ApiOperation(value = "Find Customer By Id", notes = "Provide an Id to look up a customer",
             response = Customer.class)
-    public ResponseEntity<Response<Customer>> getCustomer(@ApiParam(value = "Id value for the customer you need to retrieve", required = true)
+    public ResponseEntity<?> getCustomer(@ApiParam(value = "Id value for the customer you need to retrieve", required = true)
                                                           @PathVariable String id) throws Exception {
         log.debug("Get Customer By Id");
         return ResponseEntity.ok(new Response(customerStore.get(id), HttpStatus.OK.value()));
@@ -45,7 +45,7 @@ public class CustomerApi {
     }
 
     @PostMapping(value = "/v1.0", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Response<String>> saveCustomer(@RequestBody Customer customer) throws Exception {
+    public ResponseEntity<?> saveCustomer(@RequestBody Customer customer) throws Exception {
         log.debug("Save Customer");
         customerStore.put(customer.getId(), customer);
         return ResponseEntity.ok(new Response("SAVED", HttpStatus.OK.value()));
